@@ -1,0 +1,29 @@
+{
+  "name": "studenthire",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others -n api,web \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspace=frontend",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:generate": "npm run prisma:generate --workspace=backend",
+    "db:migrate": "npm run prisma:deploy --workspace=backend",
+    "db:seed": "npm run prisma:seed --workspace=backend",
+    "db:status": "npm run prisma:status --workspace=backend",
+    "test:db": "npm run test:db --workspace=backend",
+    "format": "prettier --write \"frontend/src/**/*.{js,jsx,css}\"",
+    "format:check": "prettier --check \"frontend/src/**/*.{js,jsx,css}\""
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "prettier": "^3.9.9"
+  }
+}
