@@ -1,0 +1,1 @@
+ALTER TABLE `companies` ADD COLUMN `address` VARCHAR(300) NULL;

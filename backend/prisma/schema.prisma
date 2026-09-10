@@ -1,0 +1,286 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  student
+  company
+  admin
+}
+
+enum AccountStatus {
+  active
+  suspended
+}
+
+enum CompanyStatus {
+  pending
+  approved
+  rejected
+}
+
+enum OpportunityType {
+  job
+  internship
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  contract
+}
+
+enum OpportunityStatus {
+  draft
+  published
+  closed
+}
+
+enum ApplicationStatus {
+  pending
+  reviewed
+  accepted
+  rejected
+  withdrawn
+}
+
+enum NotificationType {
+  company_decision
+  application_received
+  application_status_changed
+}
+
+model User {
+  id           Int           @id @default(autoincrement()) @db.UnsignedInt
+  email        String        @unique @db.VarChar(254)
+  passwordHash String        @map("password_hash") @db.VarChar(255)
+  role         Role
+  status       AccountStatus @default(active)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.DateTime(3)
+
+  student            Student?
+  company            Company?
+  notifications      Notification[]
+  applicationHistory ApplicationStatusHistory[]
+  companyApprovals   CompanyApproval[]
+
+  @@index([role, status])
+  @@map("users")
+}
+
+model Student {
+  revision       Int       @default(0)
+  id             Int       @id @default(autoincrement()) @db.UnsignedInt
+  userId         Int       @unique @map("user_id") @db.UnsignedInt
+  firstName      String    @map("first_name") @db.VarChar(100)
+  lastName       String    @map("last_name") @db.VarChar(100)
+  phone          String?   @db.VarChar(30)
+  location       String?   @db.VarChar(150)
+  university     String?   @db.VarChar(200)
+  fieldOfStudy   String?   @map("field_of_study") @db.VarChar(200)
+  graduationYear Int?      @map("graduation_year") @db.UnsignedSmallInt
+  bio            String?   @db.Text
+  cvStorageKey   String?   @unique @map("cv_storage_key") @db.VarChar(255)
+  cvOriginalName String?   @map("cv_original_name") @db.VarChar(255)
+  cvSizeBytes    Int?      @map("cv_size_bytes") @db.UnsignedInt
+  cvUploadedAt   DateTime? @map("cv_uploaded_at") @db.DateTime(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  skills            StudentSkill[]
+  applications      Application[]
+  savedOpportunities SavedOpportunity[]
+
+  @@map("students")
+}
+
+model Company {
+  revision    Int           @default(0)
+  id          Int           @id @default(autoincrement()) @db.UnsignedInt
+  userId      Int           @unique @map("user_id") @db.UnsignedInt
+  name        String        @db.VarChar(200)
+  description String?       @db.Text
+  industry    String?       @db.VarChar(150)
+  address     String?       @db.VarChar(300)
+  location    String?       @db.VarChar(150)
+  website     String?       @db.VarChar(500)
+  phone       String?       @db.VarChar(30)
+  status      CompanyStatus @default(pending)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.DateTime(3)
+
+  user          User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  opportunities Opportunity[]
+  approvals     CompanyApproval[]
+
+  @@index([status, createdAt])
+  @@map("companies")
+}
+
+model Opportunity {
+  revision       Int               @default(0)
+  id             Int               @id @default(autoincrement()) @db.UnsignedInt
+  companyId      Int               @map("company_id") @db.UnsignedInt
+  title          String            @db.VarChar(200)
+  description    String            @db.Text
+  location       String            @db.VarChar(150)
+  type           OpportunityType
+  employmentType EmploymentType    @map("employment_type")
+  field          String?           @db.VarChar(40)
+  workMode       String?           @map("work_mode") @db.VarChar(20)
+  status         OpportunityStatus @default(draft)
+  deadline       DateTime?          @db.DateTime(3)
+  publishedAt    DateTime?          @map("published_at") @db.DateTime(3)
+  closedAt       DateTime?          @map("closed_at") @db.DateTime(3)
+  createdAt      DateTime           @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.DateTime(3)
+
+  company      Company            @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  skills       OpportunitySkill[]
+  applications Application[]
+  savedBy      SavedOpportunity[]
+
+  @@index([companyId, status, createdAt])
+  @@index([status, publishedAt])
+  @@index([status, type, employmentType])
+  @@index([status, location])
+  @@index([status, field])
+  @@index([status, deadline])
+  @@map("opportunities")
+}
+
+model Skill {
+  id           Int                @id @default(autoincrement()) @db.UnsignedInt
+  name         String             @unique @db.VarChar(100)
+  isActive     Boolean            @default(true) @map("is_active")
+  createdAt    DateTime           @default(now()) @map("created_at") @db.DateTime(3)
+  students     StudentSkill[]
+  opportunities OpportunitySkill[]
+
+  @@map("skills")
+}
+
+model StudentSkill {
+  studentId Int      @map("student_id") @db.UnsignedInt
+  skillId   Int      @map("skill_id") @db.UnsignedInt
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Restrict)
+
+  @@id([studentId, skillId])
+  @@index([skillId])
+  @@map("student_skills")
+}
+
+model OpportunitySkill {
+  opportunityId Int         @map("opportunity_id") @db.UnsignedInt
+  skillId       Int         @map("skill_id") @db.UnsignedInt
+  createdAt     DateTime    @default(now()) @map("created_at") @db.DateTime(3)
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  skill         Skill       @relation(fields: [skillId], references: [id], onDelete: Restrict)
+
+  @@id([opportunityId, skillId])
+  @@index([skillId])
+  @@map("opportunity_skills")
+}
+
+model Application {
+  id                 Int               @id @default(autoincrement()) @db.UnsignedInt
+  studentId          Int               @map("student_id") @db.UnsignedInt
+  opportunityId      Int               @map("opportunity_id") @db.UnsignedInt
+  message            String?           @db.Text
+  status             ApplicationStatus @default(pending)
+  cvSnapshotKey      String            @unique @map("cv_snapshot_key") @db.VarChar(255)
+  cvOriginalName     String            @map("cv_original_name") @db.VarChar(255)
+  cvSizeBytes        Int               @map("cv_size_bytes") @db.UnsignedInt
+  createdAt          DateTime          @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt          DateTime          @updatedAt @map("updated_at") @db.DateTime(3)
+
+  student       Student                    @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  opportunity   Opportunity                @relation(fields: [opportunityId], references: [id], onDelete: Restrict)
+  history       ApplicationStatusHistory[]
+  notifications Notification[]
+
+  @@unique([studentId, opportunityId])
+  @@index([opportunityId, status, createdAt])
+  @@index([studentId, status, createdAt])
+  @@map("applications")
+}
+
+model ApplicationStatusHistory {
+  id            Int                @id @default(autoincrement()) @db.UnsignedInt
+  applicationId Int                @map("application_id") @db.UnsignedInt
+  actorId       Int                @map("actor_id") @db.UnsignedInt
+  fromStatus    ApplicationStatus? @map("from_status")
+  toStatus      ApplicationStatus  @map("to_status")
+  note          String?            @db.Text
+  createdAt     DateTime           @default(now()) @map("created_at") @db.DateTime(3)
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  actor       User        @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([applicationId, createdAt])
+  @@index([actorId])
+  @@map("application_status_history")
+}
+
+model Notification {
+  id            Int              @id @default(autoincrement()) @db.UnsignedInt
+  userId        Int              @map("user_id") @db.UnsignedInt
+  applicationId Int?             @map("application_id") @db.UnsignedInt
+  companyApprovalId Int?         @map("company_approval_id") @db.UnsignedInt
+  type          NotificationType
+  title         String           @db.VarChar(200)
+  message       String           @db.Text
+  readAt        DateTime?         @map("read_at") @db.DateTime(3)
+  createdAt     DateTime          @default(now()) @map("created_at") @db.DateTime(3)
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  application     Application?     @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  companyApproval CompanyApproval? @relation(fields: [companyApprovalId], references: [id], onDelete: Restrict)
+
+  @@index([userId, readAt, createdAt])
+  @@index([applicationId])
+  @@index([companyApprovalId])
+  @@map("notifications")
+}
+
+model SavedOpportunity {
+  studentId     Int         @map("student_id") @db.UnsignedInt
+  opportunityId Int         @map("opportunity_id") @db.UnsignedInt
+  createdAt     DateTime    @default(now()) @map("created_at") @db.DateTime(3)
+  student       Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, opportunityId])
+  @@index([opportunityId])
+  @@index([studentId, createdAt])
+  @@map("saved_opportunities")
+}
+
+model CompanyApproval {
+  fromAccountStatus AccountStatus? @map("from_account_status")
+  toAccountStatus AccountStatus? @map("to_account_status")
+  id         Int           @id @default(autoincrement()) @db.UnsignedInt
+  companyId  Int           @map("company_id") @db.UnsignedInt
+  adminId    Int           @map("admin_id") @db.UnsignedInt
+  fromStatus CompanyStatus @map("from_status")
+  toStatus   CompanyStatus @map("to_status")
+  reason     String?       @db.Text
+  createdAt  DateTime      @default(now()) @map("created_at") @db.DateTime(3)
+
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  admin         User           @relation(fields: [adminId], references: [id], onDelete: Restrict)
+  notifications Notification[]
+
+  @@index([companyId, createdAt])
+  @@index([adminId])
+  @@map("company_approvals")
+}
