@@ -1,3 +1,4 @@
+import { createAuthRouter, getDatabase } from './auth/routes.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -13,5 +14,16 @@ app.use(express.json({ limit: '100kb' }));
 app.get('/api/health', (req, res) =>
   res.json({ data: { status: 'ok', service: 'StudentHire API' } }),
 );
+let authRouter;
+app.use('/api/auth', (req, res, next) => {
+  try {
+    if (!env.JWT_ACCESS_SECRET)
+      throw new Error('JWT_ACCESS_SECRET duhet t� ket� t� pakt�n 32 karaktere.');
+    authRouter ??= createAuthRouter(getDatabase());
+    authRouter(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
 app.use(notFound);
 app.use(errorHandler);
