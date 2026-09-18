@@ -1,3 +1,4 @@
+import { createCompanyRouter } from './companies/routes.js';
 import { createAuthRouter, getDatabase } from './auth/routes.js';
 import express from 'express';
 import cors from 'cors';
@@ -21,6 +22,15 @@ app.use('/api/auth', (req, res, next) => {
       throw new Error('JWT_ACCESS_SECRET duhet t� ket� t� pakt�n 32 karaktere.');
     authRouter ??= createAuthRouter(getDatabase());
     authRouter(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+let companyRouter;
+app.use('/api/companies', (req, res, next) => {
+  try {
+    companyRouter ??= createCompanyRouter(getDatabase());
+    companyRouter(req, res, next);
   } catch (error) {
     next(error);
   }
