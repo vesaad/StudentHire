@@ -1,3 +1,4 @@
+import { createOpportunityRouter } from './opportunities/routes.js';
 import { createStudentRouter } from './students/routes.js';
 import { createCompanyRouter } from './companies/routes.js';
 import { createAuthRouter, getDatabase } from './auth/routes.js';
@@ -41,6 +42,15 @@ app.use('/api/students', (req, res, next) => {
   try {
     studentRouter ??= createStudentRouter(getDatabase());
     studentRouter(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+let opportunityRouter;
+app.use('/api/company-opportunities', (req, res, next) => {
+  try {
+    opportunityRouter ??= createOpportunityRouter(getDatabase());
+    opportunityRouter(req, res, next);
   } catch (error) {
     next(error);
   }
