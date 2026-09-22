@@ -1,3 +1,4 @@
+import { createStudentRouter } from './students/routes.js';
 import { createCompanyRouter } from './companies/routes.js';
 import { createAuthRouter, getDatabase } from './auth/routes.js';
 import express from 'express';
@@ -31,6 +32,15 @@ app.use('/api/companies', (req, res, next) => {
   try {
     companyRouter ??= createCompanyRouter(getDatabase());
     companyRouter(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+let studentRouter;
+app.use('/api/students', (req, res, next) => {
+  try {
+    studentRouter ??= createStudentRouter(getDatabase());
+    studentRouter(req, res, next);
   } catch (error) {
     next(error);
   }
