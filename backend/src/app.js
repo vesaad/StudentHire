@@ -1,4 +1,5 @@
 import { createOpportunityRouter } from './opportunities/routes.js';
+import { createApplicationRouter } from './applications/routes.js';
 import { createCatalogRouter } from './catalog/routes.js';
 import { createSavedOffersRouter } from './saved-offers/routes.js';
 import { createStudentRouter } from './students/routes.js';
@@ -71,6 +72,15 @@ app.use('/api/saved-opportunities', (req, res, next) => {
   try {
     savedOffersRouter ??= createSavedOffersRouter(getDatabase());
     savedOffersRouter(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+let applicationRouter;
+app.use('/api/applications', (req, res, next) => {
+  try {
+    applicationRouter ??= createApplicationRouter(getDatabase());
+    applicationRouter(req, res, next);
   } catch (error) {
     next(error);
   }
