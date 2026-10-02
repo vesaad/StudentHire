@@ -1,6 +1,7 @@
 import { createOpportunityRouter } from './opportunities/routes.js';
 import { createApplicationRouter } from './applications/routes.js';
 import { createRecommendationRouter } from './recommendations/routes.js';
+import { createNotificationRouter } from './notifications/routes.js';
 import { createCatalogRouter } from './catalog/routes.js';
 import { createSavedOffersRouter } from './saved-offers/routes.js';
 import { createStudentRouter } from './students/routes.js';
@@ -91,6 +92,15 @@ app.use('/api/recommendations', (req, res, next) => {
   try {
     recommendationRouter ??= createRecommendationRouter(getDatabase());
     recommendationRouter(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+let notificationRouter;
+app.use('/api/notifications', (req, res, next) => {
+  try {
+    notificationRouter ??= createNotificationRouter(getDatabase());
+    notificationRouter(req, res, next);
   } catch (error) {
     next(error);
   }
