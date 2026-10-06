@@ -3,6 +3,7 @@ import { createApplicationRouter } from './applications/routes.js';
 import { createRecommendationRouter } from './recommendations/routes.js';
 import { createNotificationRouter } from './notifications/routes.js';
 import { createDashboardRouter } from './dashboard/routes.js';
+import { createAdminRouter } from './admin/routes.js';
 import { createCatalogRouter } from './catalog/routes.js';
 import { createSavedOffersRouter } from './saved-offers/routes.js';
 import { createStudentRouter } from './students/routes.js';
@@ -111,6 +112,15 @@ app.use('/api/dashboard', (req, res, next) => {
   try {
     dashboardRouter ??= createDashboardRouter(getDatabase());
     dashboardRouter(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+let adminRouter;
+app.use('/api/admin', (req, res, next) => {
+  try {
+    adminRouter ??= createAdminRouter(getDatabase());
+    adminRouter(req, res, next);
   } catch (error) {
     next(error);
   }

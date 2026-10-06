@@ -5,3 +5,5 @@ coverage/
 *.log
 backend/uploads/
 backend/prisma/dev.db
+
+.vite/

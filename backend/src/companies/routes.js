@@ -32,8 +32,11 @@ export function createCompanyRouter(prisma) {
   });
   router.get('/', requireRole('admin'), async (req, res, next) => {
     try {
-      const { page, status } = parse(listSchema, req.query);
-      const where = status === 'all' ? {} : { status };
+      const { page, status, q } = parse(listSchema, req.query);
+      const where = {
+        ...(status === 'all' ? {} : { status }),
+        ...(q ? { OR: [{ name: { contains: q } }, { user: { email: { contains: q } } }] } : {}),
+      };
       const [items, total] = await Promise.all([
         prisma.company.findMany({
           where,

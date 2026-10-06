@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api, getErrorMessage } from '../api/client.js';
 import { LoadingState, ErrorState } from './States.jsx';
 import { applicationStatuses } from '../data/applicationStatuses.js';
+import { AdminIcon } from './AdminShell.jsx';
 
 export default function DashboardOverview({ user }) {
   const [data, setData] = useState(null);
@@ -60,12 +60,16 @@ export default function DashboardOverview({ user }) {
       cards.push([`Aplikime: ${label}`, data.applications[status] || 0]);
     }
   return (
-    <section className={`container pt-5${isCompany ? ' company-overview' : ''}`}>
+    <section
+      className={`container pt-5${isCompany ? ' company-overview' : data.role === 'admin' ? ' admin-overview' : ''}`}
+    >
       <div className={isCompany ? 'company-heading-banner' : undefined}>
         <h1 className="h2">
           {isCompany
             ? data.name || 'Kompania ime'
-            : `Përmbledhja${data.name ? ` — ${data.name}` : ''}`}
+            : data.role === 'admin'
+              ? 'Paneli i administrimit'
+              : `Përmbledhja${data.name ? ` — ${data.name}` : ''}`}
         </h1>
         {data.role === 'company' && (
           <p>
@@ -80,32 +84,39 @@ export default function DashboardOverview({ user }) {
           </p>
         )}
       </div>
+      {data.role === 'admin' && (
+        <p className="admin-page-intro">
+          Monitoro dhe menaxho aktivitetin e platformës, përdoruesit, kompanitë, ofertat dhe
+          aplikimet nga një vend i vetëm.
+        </p>
+      )}
       <div className="row g-3 my-3">
-        {cards.map(([label, value]) => (
+        {cards.map(([label, value], index) => (
           <div className="col-sm-6 col-lg-3" key={label}>
-            <div className="surface p-3 h-100">
+            <div
+              className={`surface p-3 h-100${data.role === 'admin' ? ` admin-stat admin-stat-${index % 4}` : ''}`}
+            >
+              {data.role === 'admin' && (
+                <span className="admin-stat-icon">
+                  <AdminIcon
+                    kind={
+                      label.includes('Kompani')
+                        ? 'companies'
+                        : label.includes('Oferta')
+                          ? 'offers'
+                          : label.includes('Njoftime')
+                            ? 'bell'
+                            : 'users'
+                    }
+                  />
+                </span>
+              )}
               <p className="mb-2">{label}</p>
               <strong className="h3">{value}</strong>
             </div>
           </div>
         ))}
       </div>
-      {!isCompany && (
-        <div className="d-flex gap-3 flex-wrap">
-          <Link className="btn btn-primary" to={`/dashboard/${user.role}/notifications`}>
-            Hap njoftimet
-          </Link>
-          <button className="btn btn-outline-primary" onClick={() => setAttempt(attempt + 1)}>
-            Rifresko përmbledhjen
-          </button>
-        </div>
-      )}
-      {!isCompany && data.offers && (
-        <p className="small text-secondary mt-3">
-          Numrat e ofertave janë sipas statusit të ruajtur; ofertat e publikuara mund të kenë afat
-          të kaluar.
-        </p>
-      )}
     </section>
   );
 }

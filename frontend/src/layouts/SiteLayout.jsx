@@ -4,6 +4,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import Brand from '../components/Brand.jsx';
 import NotificationLink from '../components/NotificationLink.jsx';
 import StudentAccountMenu from '../components/StudentAccountMenu.jsx';
+import AdminShell from '../components/AdminShell.jsx';
 
 export default function SiteLayout() {
   const { user, loading, error, logout } = useAuth();
@@ -115,7 +116,13 @@ export default function SiteLayout() {
         </div>
       </header>
       <main id="content" tabIndex="-1">
-        <Outlet />
+        {user?.role === 'admin' && pathname.startsWith('/dashboard/admin') ? (
+          <AdminShell>
+            <Outlet />
+          </AdminShell>
+        ) : (
+          <Outlet />
+        )}
       </main>
       <footer className="site-footer">
         <div className="container footer-inner">

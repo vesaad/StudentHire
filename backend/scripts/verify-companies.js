@@ -61,14 +61,20 @@ try {
     description: 'Description',
     industry: 'IT',
     location: 'Prishtinë',
-    phone: '123',
+    phone: '+38344123456',
     website: 'https://example.com',
   };
   const update = (data) =>
     request(app).put('/companies/me').auth(token(owner), { type: 'bearer' }).send(data);
   check((await update({ ...fields, status: 'approved' })).status, 400);
   check((await update({ ...fields, website: 'javascript:alert(1)' })).status, 400);
+  check((await update({ ...fields, phone: '123' })).status, 400);
   check((await update(fields)).status, 200);
+  const companySearch = await get('/companies?status=all&q=Updated%20Company', admin);
+  check(companySearch.status, 200);
+  check(companySearch.body.data.items.some(item => item.id === owner.company.id), true);
+  const emailSearch = await get(`/companies?status=all&q=${encodeURIComponent(owner.email)}`, admin);
+  check(emailSearch.body.data.items.some(item => item.id === owner.company.id), true);
   check((await update(fields)).status, 409);
   check((await prisma.company.findUnique({ where: { id: other.company.id } })).revision, 0);
   check((await decide(1, 'reject')).status, 400);

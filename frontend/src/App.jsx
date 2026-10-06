@@ -1,5 +1,6 @@
 import CompanyOffers from './pages/CompanyOffers.jsx';
 import Notifications from './pages/Notifications.jsx';
+import AdminManagement from './pages/AdminManagement.jsx';
 import Recommendations from './pages/Recommendations.jsx';
 import Applications from './pages/Applications.jsx';
 import ApplicationDetails from './pages/ApplicationDetails.jsx';
@@ -38,6 +39,7 @@ export default function App() {
                 <Route path="saved" element={<SavedOffers />} />
                 <Route path="recommendations" element={<Recommendations />} />
                 <Route path="notifications" element={<Notifications />} />
+                <Route path="manage/:section" element={<AdminManagement />} />
                 <Route path="applications" element={<Applications />} />
                 <Route path="applications/:id" element={<ApplicationDetails />} />
               </Route>

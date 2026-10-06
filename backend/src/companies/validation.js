@@ -26,7 +26,11 @@ export const profileSchema = z
     industry: optionalText(150),
     location: optionalText(150),
     address: optionalText(300).optional(),
-    phone: z.string().trim().regex(/^(?:\+383\d{8})?$/, 'Telefoni duhet të ketë 8 shifra pas +383.').transform((value) => value || null),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^(?:\+383\d{8})?$/, 'Telefoni duhet të ketë 8 shifra pas +383.')
+      .transform((value) => value || null),
     website,
   })
   .strict();
@@ -42,6 +46,7 @@ export const listSchema = z
   .object({
     page: z.coerce.number().int().min(1).max(100000).default(1),
     status: z.enum(['pending', 'approved', 'rejected', 'all']).default('pending'),
+    q: z.string().trim().max(100).default(''),
   })
   .strict();
 export const idSchema = z.coerce.number().int().positive().max(4294967295);
@@ -55,4 +60,3 @@ export function parse(schema, input) {
     );
   return result.data;
 }
-

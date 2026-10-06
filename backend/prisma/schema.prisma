@@ -50,12 +50,18 @@ enum ApplicationStatus {
 }
 
 enum NotificationType {
+  account_status_changed
+  opportunity_moderated
   company_decision
   application_received
   application_status_changed
 }
 
 model User {
+  revision Int @default(0)
+  statusReason String? @map("status_reason") @db.Text
+  statusChangedAt DateTime? @map("status_changed_at") @db.DateTime(3)
+  moderatedOpportunities Opportunity[] @relation("OpportunityModerator")
   id           Int           @id @default(autoincrement()) @db.UnsignedInt
   email        String        @unique @db.VarChar(254)
   passwordHash String        @map("password_hash") @db.VarChar(255)
@@ -125,6 +131,10 @@ model Company {
 }
 
 model Opportunity {
+  moderationReason String? @map("moderation_reason") @db.Text
+  moderatedAt DateTime? @map("moderated_at") @db.DateTime(3)
+  moderatedById Int? @map("moderated_by_id") @db.UnsignedInt
+  moderatedBy User? @relation("OpportunityModerator", fields: [moderatedById], references: [id], onDelete: Restrict)
   revision       Int               @default(0)
   id             Int               @id @default(autoincrement()) @db.UnsignedInt
   companyId      Int               @map("company_id") @db.UnsignedInt
@@ -157,6 +167,7 @@ model Opportunity {
 }
 
 model Skill {
+  revision Int @default(0)
   id           Int                @id @default(autoincrement()) @db.UnsignedInt
   name         String             @unique @db.VarChar(100)
   isActive     Boolean            @default(true) @map("is_active")

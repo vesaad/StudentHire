@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, getErrorMessage } from '../api/client.js';
 import { ErrorState, LoadingState } from './States.jsx';
-import CompanyHistory, { statusLabel } from './CompanyHistory.jsx';
+import { statusLabel } from './CompanyHistory.jsx';
 
 export default function CompanyReview({ companyId, busy, onBusyChange, onSaved }) {
   const [company, setCompany] = useState(null);
@@ -72,6 +72,7 @@ export default function CompanyReview({ companyId, busy, onBusyChange, onSaved }
                 {[
                   ['Industria', company.industry],
                   ['Lokacioni', company.location],
+                  ['Adresa', company.address],
                   ['Telefoni', company.phone],
                   ['Website', company.website],
                 ].map(([label, value]) => (
@@ -111,6 +112,7 @@ export default function CompanyReview({ companyId, busy, onBusyChange, onSaved }
                     className="form-control"
                     name="reason"
                     id="reason"
+                    placeholder="Shkruaj këtu arsyetimin…"
                     maxLength={2000}
                     rows={3}
                   />
@@ -134,7 +136,6 @@ export default function CompanyReview({ companyId, busy, onBusyChange, onSaved }
                 </fieldset>
               </form>
             </div>
-            <CompanyHistory history={company.approvals} />
           </>
         )}
       </section>
