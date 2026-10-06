@@ -40,6 +40,7 @@ export default function AdminShell({ children }) {
           {[
             ['users', 'Përdoruesit'],
             ['companies', 'Kompanitë'],
+            ['skills', 'Aftësitë'],
           ].map(([section, label]) => (
             <NavLink key={section} to={`/dashboard/admin/manage/${section}`}>
               <AdminIcon kind={section} />

@@ -42,3 +42,21 @@ export async function changeAccount(prisma, adminId, id, input) {
     return tx.user.findUnique({ where: { id }, select: userFields });
   });
 }
+export async function saveSkill(prisma, adminId, id, input) {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      await checkAdmin(tx, adminId);
+      if (!id) return tx.skill.create({ data: { name: input.name } });
+      const changed = await tx.skill.updateMany({
+        where: { id, revision: input.revision },
+        data: { name: input.name, isActive: input.isActive, revision: { increment: 1 } },
+      });
+      if (changed.count !== 1) throw conflict();
+      return tx.skill.findUnique({ where: { id } });
+    });
+  } catch (error) {
+    if (error.code === 'P2002')
+      throw authError(409, 'DUPLICATE_SKILL', 'Kjo aftësi ekziston tashmë.');
+    throw error;
+  }
+}

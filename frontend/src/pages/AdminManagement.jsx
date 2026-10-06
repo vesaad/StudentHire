@@ -8,6 +8,7 @@ import AdminActionForm from '../components/AdminActionForm.jsx';
 import AdminCompanies from './AdminCompanies.jsx';
 const titles = {
   users: 'Përdoruesit',
+  skills: 'Katalogu i aftësive',
 };
 const statusLabels = {
   active: 'Aktive',
