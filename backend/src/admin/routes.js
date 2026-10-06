@@ -4,13 +4,15 @@ import {
   parse,
   idSchema,
   userQuery,
+  offerQuery,
   skillQuery,
   accountSchema,
+  closeSchema,
   newSkillSchema,
   skillSchema,
 } from './validation.js';
 import { adminList } from './queries.js';
-import { changeAccount, saveSkill } from './service.js';
+import { changeAccount, saveSkill, moderateOffer } from './service.js';
 export function createAdminRouter(prisma) {
   const router = Router();
   router.use(authenticate(prisma), requireRole('admin'));
@@ -21,6 +23,7 @@ export function createAdminRouter(prisma) {
   for (const [section, schema] of Object.entries({
     users: userQuery,
     skills: skillQuery,
+    offers: offerQuery,
   }))
     router.get(`/${section}`, async (req, res, next) => {
       try {
@@ -62,6 +65,20 @@ export function createAdminRouter(prisma) {
           req.user.id,
           parse(idSchema, req.params.id),
           parse(skillSchema, req.body),
+        ),
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.post('/offers/:id/close', async (req, res, next) => {
+    try {
+      res.json({
+        data: await moderateOffer(
+          prisma,
+          req.user.id,
+          parse(idSchema, req.params.id),
+          parse(closeSchema, req.body),
         ),
       });
     } catch (error) {

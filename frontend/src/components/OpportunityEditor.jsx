@@ -98,6 +98,9 @@ export default function OpportunityEditor({ id, skills, busy, onBusyChange, onSa
           {message}
         </p>
       )}
+      {offer?.moderationReason && (
+        <p className="notice">Oferta u mbyll nga administratori: {offer.moderationReason}</p>
+      )}
       <OpportunityForm
         key={offer ? `${offer.id}-${offer.revision}` : 'new'}
         offer={offer}

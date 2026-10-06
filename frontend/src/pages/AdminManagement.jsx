@@ -9,6 +9,7 @@ import AdminCompanies from './AdminCompanies.jsx';
 const titles = {
   users: 'Përdoruesit',
   skills: 'Katalogu i aftësive',
+  offers: 'Moderimi i ofertave',
 };
 const statusLabels = {
   active: 'Aktive',

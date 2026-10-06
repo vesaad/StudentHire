@@ -21,7 +21,8 @@
     "test:catalog": "node scripts/verify-catalog.js",
     "test:applications": "node scripts/verify-applications.js",
     "test:recommendations": "node scripts/verify-recommendations.js",
-    "test:dashboard": "node scripts/verify-dashboard.js"
+    "test:dashboard": "node scripts/verify-dashboard.js",
+    "test:admin": "node scripts/verify-admin.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

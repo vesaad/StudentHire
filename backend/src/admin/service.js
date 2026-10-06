@@ -60,3 +60,37 @@ export async function saveSkill(prisma, adminId, id, input) {
     throw error;
   }
 }
+export async function moderateOffer(prisma, adminId, id, input) {
+  const initial = await prisma.opportunity.findUnique({
+    where: { id },
+    select: { companyId: true },
+  });
+  if (!initial) throw authError(404, 'NOT_FOUND', 'Oferta nuk u gjet.');
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM companies WHERE id = ${initial.companyId} FOR UPDATE`;
+    await checkAdmin(tx, adminId);
+    const offer = await tx.opportunity.findUnique({ where: { id }, include: { company: true } });
+    if (offer.revision !== input.revision) throw conflict();
+    if (offer.status === 'closed') throw authError(409, 'CLOSED', 'Oferta është mbyllur tashmë.');
+    const now = new Date();
+    const changed = await tx.opportunity.updateMany({
+      where: { id, revision: input.revision },
+      data: {
+        status: 'closed',
+        closedAt: now,
+        moderatedAt: now,
+        moderatedById: adminId,
+        moderationReason: input.reason,
+        revision: { increment: 1 },
+      },
+    });
+    if (changed.count !== 1) throw conflict();
+    await createNotification(tx, {
+      userId: offer.company.userId,
+      type: 'opportunity_moderated',
+      title: 'Oferta u mbyll nga administratori',
+      message: `${offer.title}: ${input.reason}`,
+    });
+    return { id, status: 'closed' };
+  });
+}
