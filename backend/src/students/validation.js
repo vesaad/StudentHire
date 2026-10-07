@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { authError } from '../auth/service.js';
+import { jobFieldValues } from '../../../shared/jobFields.js';
 const optionalText = (max) =>
   z
     .string()
@@ -10,6 +11,10 @@ export const revisionSchema = z.coerce.number().int().nonnegative();
 export const profileSchema = z
   .object({
     revision: z.number().int().nonnegative(),
+    preferredField: z.enum(jobFieldValues).nullable().optional(),
+    preferredJobType: z.enum(['job', 'internship']).nullable().optional(),
+    preferredWorkMode: z.enum(['onsite', 'hybrid', 'remote']).nullable().optional(),
+    preferredLocation: optionalText(150).nullable().optional(),
     firstName: z.string().trim().min(1).max(100),
     lastName: z.string().trim().min(1).max(100),
     phone: optionalText(30),

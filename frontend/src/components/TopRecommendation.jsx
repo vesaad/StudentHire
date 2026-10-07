@@ -19,7 +19,7 @@ export default function TopRecommendation({ revision }) {
     return () => controller.abort();
   }, [revision, attempt]);
   const offer = result?.items[0];
-  const percentage = offer?.match.percentage;
+  const percentage = offer?.match.matchScore ?? offer?.match.percentage;
   return (
     <section className="student-action-card recommendations" aria-label="Rekomandimet">
       <div className="student-action-heading">
@@ -56,7 +56,7 @@ export default function TopRecommendation({ revision }) {
           {percentage !== null ? (
             <>
               <div className="top-recommendation-score">
-                <span>Përputhja e aftësive</span>
+                <span>Përputhja e përgjithshme</span>
                 <strong>{percentage}%</strong>
               </div>
               <div className="top-recommendation-track">
@@ -64,7 +64,7 @@ export default function TopRecommendation({ revision }) {
                   className="top-recommendation-progress"
                   value={percentage}
                   max="100"
-                  aria-label="Përputhja e aftësive"
+                  aria-label="Përputhja e përgjithshme"
                 />
                 <span
                   className="top-recommendation-star"

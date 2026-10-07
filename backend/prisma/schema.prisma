@@ -81,6 +81,10 @@ model User {
 }
 
 model Student {
+  preferredField String? @map("preferred_field") @db.VarChar(40)
+  preferredJobType OpportunityType? @map("preferred_job_type")
+  preferredWorkMode String? @map("preferred_work_mode") @db.VarChar(20)
+  preferredLocation String? @map("preferred_location") @db.VarChar(150)
   revision       Int       @default(0)
   id             Int       @id @default(autoincrement()) @db.UnsignedInt
   userId         Int       @unique @map("user_id") @db.UnsignedInt
@@ -167,6 +171,11 @@ model Opportunity {
 }
 
 model Skill {
+  categoryId Int? @map("category_id") @db.UnsignedInt
+  category SkillCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  fields FieldSkill[]
+  relationships SkillRelationship[] @relation("SkillSource")
+  relatedFrom SkillRelationship[] @relation("SkillTarget")
   revision Int @default(0)
   id           Int                @id @default(autoincrement()) @db.UnsignedInt
   name         String             @unique @db.VarChar(100)
@@ -191,6 +200,8 @@ model StudentSkill {
 }
 
 model OpportunitySkill {
+  requirementType SkillRequirement @default(required) @map("requirement_type")
+  weight Int @default(1) @db.UnsignedTinyInt
   opportunityId Int         @map("opportunity_id") @db.UnsignedInt
   skillId       Int         @map("skill_id") @db.UnsignedInt
   createdAt     DateTime    @default(now()) @map("created_at") @db.DateTime(3)
@@ -200,6 +211,41 @@ model OpportunitySkill {
   @@id([opportunityId, skillId])
   @@index([skillId])
   @@map("opportunity_skills")
+}
+
+enum SkillRequirement {
+  required
+  preferred
+}
+
+model SkillCategory {
+  id Int @id @default(autoincrement()) @db.UnsignedInt
+  name String @unique @db.VarChar(100)
+  isGeneric Boolean @default(false) @map("is_generic")
+  skills Skill[]
+  @@map("skill_categories")
+}
+
+model FieldSkill {
+  field String @db.VarChar(40)
+  skillId Int @map("skill_id") @db.UnsignedInt
+  relevanceWeight Float @default(1) @map("relevance_weight")
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  @@id([field, skillId])
+  @@index([skillId])
+  @@map("field_skills")
+}
+
+model SkillRelationship {
+  skillId Int @map("skill_id") @db.UnsignedInt
+  relatedSkillId Int @map("related_skill_id") @db.UnsignedInt
+  relationType String @default("related") @map("relation_type") @db.VarChar(30)
+  similarityWeight Float @map("similarity_weight")
+  skill Skill @relation("SkillSource", fields: [skillId], references: [id], onDelete: Cascade)
+  relatedSkill Skill @relation("SkillTarget", fields: [relatedSkillId], references: [id], onDelete: Cascade)
+  @@id([skillId, relatedSkillId])
+  @@index([relatedSkillId])
+  @@map("skill_relationships")
 }
 
 model Application {

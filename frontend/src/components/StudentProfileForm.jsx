@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, getErrorMessage } from '../api/client.js';
 import SkillInput from './SkillInput.jsx';
+import { jobFields, workModes } from '../../../shared/jobFields.js';
 
 const fields = [
   { name: 'firstName', label: 'Emri', max: 100, required: true },
@@ -25,6 +26,13 @@ export default function StudentProfileForm({ student, skills, onSaved }) {
     const data = Object.fromEntries(form);
     data.revision = student.revision;
     data.skillNames = skillNames;
+    for (const key of [
+      'preferredField',
+      'preferredJobType',
+      'preferredWorkMode',
+      'preferredLocation',
+    ])
+      data[key] = data[key] || null;
     data.graduationYear = form.get('graduationYear') ? Number(form.get('graduationYear')) : null;
     try {
       const response = await api.put('/students/me', data);
@@ -84,6 +92,59 @@ export default function StudentProfileForm({ student, skills, onSaved }) {
             />
           </div>
         </div>
+        <fieldset className="mt-4">
+          <legend className="h4">Preferencat për rekomandime</legend>
+          <p className="text-secondary">Opsionale. Zgjidh çfarë pune po kërkon.</p>
+          <div className="row g-3">
+            {[
+              [
+                'preferredField',
+                'Fusha e preferuar',
+                jobFields.map(({ value, label }) => [value, label]),
+              ],
+              [
+                'preferredJobType',
+                'Lloji i preferuar',
+                [
+                  ['job', 'Punë'],
+                  ['internship', 'Praktikë'],
+                ],
+              ],
+              ['preferredWorkMode', 'Mënyra e punës', Object.entries(workModes)],
+            ].map(([name, label, options]) => (
+              <div className="col-md-6" key={name}>
+                <label className="form-label" htmlFor={name}>
+                  {label}
+                </label>
+                <select
+                  id={name}
+                  name={name}
+                  className="form-select"
+                  defaultValue={student[name] || ''}
+                >
+                  <option value="">Pa preferencë</option>
+                  {options.map(([value, text]) => (
+                    <option key={value} value={value}>
+                      {text}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+            <div className="col-md-6">
+              <label className="form-label" htmlFor="preferredLocation">
+                Lokacioni i preferuar
+              </label>
+              <input
+                id="preferredLocation"
+                name="preferredLocation"
+                className="form-control"
+                maxLength={150}
+                defaultValue={student.preferredLocation || ''}
+              />
+            </div>
+          </div>
+        </fieldset>
         <fieldset className="mt-4">
           <legend className="h4">Aftësitë e mia</legend>
           <SkillInput value={skillNames} onChange={setSkillNames} skills={skills} disabled={busy} />

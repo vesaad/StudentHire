@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { parse, searchSchema, idSchema } from './validation.js';
 import { searchOffers, offerDetails, visibleOffers } from './service.js';
 import { jobFields } from '../../../shared/jobFields.js';
+import { authenticate, requireRole } from '../auth/middleware.js';
+import { offerMatch } from '../recommendations/service.js';
 
 export function createCatalogRouter(prisma) {
   const router = Router();
@@ -20,6 +22,7 @@ export function createCatalogRouter(prisma) {
             ...(field
               ? {
                   OR: [
+                    { fields: { some: { field } } },
                     { name: { in: names } },
                     { opportunities: { some: { opportunity: { field } } } },
                   ],
@@ -55,6 +58,13 @@ export function createCatalogRouter(prisma) {
           total: sectors.find((sector) => sector.field === value)?._count._all || 0,
         })),
       });
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.get('/:id/match', authenticate(prisma), requireRole('student'), async (req, res, next) => {
+    try {
+      res.json({ data: await offerMatch(prisma, req.user.id, parse(idSchema, req.params.id)) });
     } catch (error) {
       next(error);
     }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { jobFields, workModes } from '../../../shared/jobFields.js';
+import { jobFields, workModes, skillKey } from '../../../shared/jobFields.js';
 import SkillInput from './SkillInput.jsx';
 
 function localDate(value) {
@@ -11,6 +11,23 @@ export default function OpportunityForm({ offer, skills, busy, onSave, onDirty, 
   const [field, setField] = useState(offer?.field || '');
   const [validationError, setValidationError] = useState('');
   const [skillNames, setSkillNames] = useState(offer?.skills.map((item) => item.skill.name) || []);
+  const [requirements, setRequirements] = useState(() =>
+    Object.fromEntries(
+      (offer?.skills || []).map((item) => [
+        skillKey(item.skill.name),
+        { requirementType: item.requirementType || 'required', weight: item.weight || 1 },
+      ]),
+    ),
+  );
+  const settings = (name) =>
+    requirements[skillKey(name)] || { requirementType: 'required', weight: 1 };
+  function changeRequirement(name, key, value) {
+    setRequirements((previous) => ({
+      ...previous,
+      [skillKey(name)]: { ...settings(name), [key]: value },
+    }));
+    onDirty(true);
+  }
   function submit(event) {
     event.preventDefault();
     setValidationError('');
@@ -26,6 +43,7 @@ export default function OpportunityForm({ offer, skills, busy, onSave, onDirty, 
     const form = new FormData(event.currentTarget);
     const values = Object.fromEntries(form);
     values.skillNames = skillNames;
+    values.skillRequirements = skillNames.map((name) => ({ name, ...settings(name) }));
     values.deadline = values.deadline ? new Date(values.deadline).toISOString() : null;
     onSave(values);
   }
@@ -163,6 +181,48 @@ export default function OpportunityForm({ offer, skills, busy, onSave, onDirty, 
             }}
             disabled={busy || offer?.status === 'closed'}
           />
+          <p className="small text-secondary mt-3">
+            Aftësitë e detyrueshme vlejnë dyfish. Pesha 3 për një aftësi të detyrueshme e shënon atë
+            si kritike.
+          </p>
+          {skillNames.map((name, index) => (
+            <div className="row g-2 align-items-center mb-3" key={skillKey(name)}>
+              <strong className="col-md-4">{name}</strong>
+              <div className="col-md-4">
+                <label className="form-label" htmlFor={`requirement-${index}`}>
+                  Kërkesa për {name}
+                </label>
+                <select
+                  id={`requirement-${index}`}
+                  className="form-select"
+                  value={settings(name).requirementType}
+                  onChange={(event) =>
+                    changeRequirement(name, 'requirementType', event.target.value)
+                  }
+                >
+                  <option value="required">E detyrueshme</option>
+                  <option value="preferred">E preferuar</option>
+                </select>
+              </div>
+              <div className="col-md-4">
+                <label className="form-label" htmlFor={`weight-${index}`}>
+                  Rëndësia e {name}
+                </label>
+                <select
+                  id={`weight-${index}`}
+                  className="form-select"
+                  value={settings(name).weight}
+                  onChange={(event) =>
+                    changeRequirement(name, 'weight', Number(event.target.value))
+                  }
+                >
+                  <option value={1}>1 — Bazë</option>
+                  <option value={2}>2 — E rëndësishme</option>
+                  <option value={3}>3 — Shumë e rëndësishme</option>
+                </select>
+              </div>
+            </div>
+          ))}
         </fieldset>
         {(validationError || error) && (
           <p className="text-danger mt-3" role="alert">

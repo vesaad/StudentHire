@@ -33,14 +33,14 @@ function RecommendationList() {
   return (
     <div className="container py-5">
       <Link to="/dashboard/student">← Profili im</Link>
-      <h1 className="mt-4">Ofertat e rekomanduara</h1>
+      <h1 className="mt-4">Rekomanduar për ty</h1>
       <p>
-        Renditen sipas aftësive të përbashkëta me profilin tënd. Përputhja = aftësitë e përbashkëta
-        / aftësitë e kërkuara × 100.
+        Renditen sipas përputhjes së aftësive dhe preferencave: 70% aftësitë, 10% fusha, 10% mënyra
+        e punës, 5% lloji i ofertës dhe 5% lokacioni.
       </p>
       <p className="text-secondary">
-        Përqindja përshkruan vetëm aftësitë e zgjedhura; nuk garanton pranimin. Ofertat pa aftësi të
-        kërkuara renditen në fund.
+        Aftësitë e lidhura marrin pikë të pjesshme. Mungesa e aftësive kritike e ul rezultatin.
+        Përqindja nuk garanton pranimin.
       </p>
       <div className="d-flex gap-3 flex-wrap mb-4">
         <Link className="btn btn-outline-primary" to="/dashboard/student">

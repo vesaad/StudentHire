@@ -2,6 +2,7 @@ import { createDatabaseClient } from '../src/config/database.js';
 import bcrypt from 'bcrypt';
 import { randomBytes } from 'node:crypto';
 import { jobFields } from '../../shared/jobFields.js';
+import { seedKnowledge } from './seed-knowledge.js';
 
 const demoCompanies = [
   { name: 'ABC Company', email: 'abc@demo.studenthire.test' },
@@ -51,6 +52,7 @@ try {
     ),
   );
   console.log(`Seed përfundoi: ${skills.length} aftësi bazë.`);
+  console.log('Knowledge base:', await seedKnowledge(prisma));
   if (includeDemo) {
     const password = process.env.DEMO_COMPANY_PASSWORD || randomBytes(18).toString('base64url');
     if (password.length < 12 || Buffer.byteLength(password, 'utf8') > 72) {

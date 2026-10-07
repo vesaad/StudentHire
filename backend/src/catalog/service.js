@@ -20,7 +20,9 @@ export const offerSummary = {
   deadline: true,
   publishedAt: true,
   company: { select: { id: true, name: true } },
-  skills: { select: { skill: { select: { id: true, name: true } } } },
+  skills: {
+    select: { requirementType: true, weight: true, skill: { select: { id: true, name: true } } },
+  },
 };
 
 export async function searchOffers(prisma, filters) {

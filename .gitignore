@@ -7,3 +7,6 @@ backend/uploads/
 backend/prisma/dev.db
 
 .vite/
+
+# Personal project documentation stays local.
+/docs/

@@ -21,6 +21,7 @@
     "test:catalog": "node scripts/verify-catalog.js",
     "test:applications": "node scripts/verify-applications.js",
     "test:recommendations": "node scripts/verify-recommendations.js",
+    "test:knowledge": "node scripts/verify-knowledge.js",
     "test:dashboard": "node scripts/verify-dashboard.js",
     "test:admin": "node scripts/verify-admin.js"
   },

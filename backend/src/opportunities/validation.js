@@ -16,6 +16,18 @@ const fields = {
     .refine((ids) => new Set(ids).size === ids.length)
     .default([]),
   skillNames: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
+  skillRequirements: z
+    .array(
+      z
+        .object({
+          name: z.string().trim().min(1).max(100),
+          requirementType: z.enum(['required', 'preferred']),
+          weight: z.number().int().min(1).max(3),
+        })
+        .strict(),
+    )
+    .max(100)
+    .optional(),
 };
 export const createSchema = z.object(fields).strict();
 export const updateSchema = z

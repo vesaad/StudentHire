@@ -1,5 +1,32 @@
 import { authError } from '../auth/service.js';
 import { resolveSkillNames } from '../skills/resolve.js';
+import { skillKey } from '../../../shared/jobFields.js';
+
+async function requirementRows(tx, skillIds, input, previous = []) {
+  const skills = await tx.skill.findMany({ where: { id: { in: skillIds } } });
+  const byName = new Map(skills.map((skill) => [skillKey(skill.name), skill.id]));
+  const settings = new Map();
+  for (const item of input || []) {
+    const id = byName.get(skillKey(item.name));
+    if (!id || settings.has(id))
+      throw authError(
+        400,
+        'INVALID_SKILLS',
+        'Pesha duhet të lidhet me një aftësi të zgjedhur, pa përsëritje.',
+      );
+    settings.set(id, { requirementType: item.requirementType, weight: item.weight });
+  }
+  return skillIds.map((skillId) => {
+    const existing = previous.find((item) => item.skillId === skillId);
+    return {
+      skillId,
+      ...(settings.get(skillId) || {
+        requirementType: existing?.requirementType || 'required',
+        weight: existing?.weight || 1,
+      }),
+    };
+  });
+}
 
 export const opportunityDetails = {
   skills: { include: { skill: { select: { id: true, name: true, isActive: true } } } },
@@ -47,15 +74,16 @@ export async function getOpportunity(prisma, companyId, id) {
 }
 export async function createOpportunity(prisma, companyId, input) {
   return withCompany(prisma, companyId, async (tx) => {
-    const { skillIds: inputIds = [], skillNames, ...fields } = input;
+    const { skillIds: inputIds = [], skillNames, skillRequirements, ...fields } = input;
     const skillIds = skillNames !== undefined ? await resolveSkillNames(tx, skillNames) : inputIds;
     await checkSkills(tx, skillIds);
+    const requirements = await requirementRows(tx, skillIds, skillRequirements);
     return tx.opportunity.create({
       data: {
         ...fields,
         deadline: fields.deadline ? new Date(fields.deadline) : null,
         companyId,
-        skills: { create: skillIds.map((skillId) => ({ skillId })) },
+        skills: { create: requirements },
       },
       include: opportunityDetails,
     });
@@ -67,7 +95,7 @@ export async function updateOpportunity(prisma, companyId, id, input) {
     if (offer.status === 'closed')
       throw authError(409, 'CLOSED', 'Oferta e mbyllur nuk mund të ndryshohet.');
     if (offer.revision !== input.revision) throw conflict();
-    const { revision, skillIds: inputIds = [], skillNames, ...fields } = input;
+    const { revision, skillIds: inputIds = [], skillNames, skillRequirements, ...fields } = input;
     const skillIds =
       skillNames !== undefined
         ? await resolveSkillNames(
@@ -82,6 +110,7 @@ export async function updateOpportunity(prisma, companyId, id, input) {
       skillIds,
       offer.skills.map((item) => item.skillId),
     );
+    const requirements = await requirementRows(tx, skillIds, skillRequirements, offer.skills);
     const changed = await tx.opportunity.updateMany({
       where: { id, companyId, revision },
       data: {
@@ -94,7 +123,7 @@ export async function updateOpportunity(prisma, companyId, id, input) {
     await tx.opportunitySkill.deleteMany({ where: { opportunityId: id } });
     if (skillIds.length)
       await tx.opportunitySkill.createMany({
-        data: skillIds.map((skillId) => ({ opportunityId: id, skillId })),
+        data: requirements.map((item) => ({ opportunityId: id, ...item })),
       });
     return getOpportunity(tx, companyId, id);
   });

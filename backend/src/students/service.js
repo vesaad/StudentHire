@@ -1,6 +1,10 @@
 import { authError } from '../auth/service.js';
 import { resolveSkillNames } from '../skills/resolve.js';
 export const studentFields = {
+  preferredField: true,
+  preferredJobType: true,
+  preferredWorkMode: true,
+  preferredLocation: true,
   id: true,
   firstName: true,
   lastName: true,

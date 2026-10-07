@@ -1,5 +1,5 @@
 export default function SkillMatch({ match }) {
-  const score = match.percentage;
+  const score = match.matchScore ?? match.percentage;
   const heading =
     score === null
       ? 'Përputhja e aftësive'
@@ -20,14 +20,14 @@ export default function SkillMatch({ match }) {
           <h2>{heading}</h2>
           {score !== null && (
             <span className="skill-match-badge">
-              <strong>{score}%</strong> Përputhje e aftësive
+              <strong>{score}%</strong> Përputhje e përgjithshme
             </span>
           )}
         </div>
         <p>
           {score === null
             ? 'Oferta nuk ka aftësi të kërkuara; përputhja nuk mund të llogaritet.'
-            : 'Bazuar në aftësitë e ruajtura në profilin tënd dhe ato që kërkon kjo pozitë.'}
+            : 'Bazuar në aftësitë, rëndësinë e tyre dhe preferencat e profilit tënd.'}
         </p>
         {score !== null && (
           <>
@@ -46,7 +46,39 @@ export default function SkillMatch({ match }) {
                 {match.missing.map((skill) => skill.name).join(', ') ||
                   'Asnjë — i ke të gjitha aftësitë e kërkuara.'}
               </p>
+              {match.missingImportantSkills?.length > 0 && (
+                <p>
+                  <strong>Aftësi të detyrueshme pa përputhje të plotë:</strong>{' '}
+                  {match.missingImportantSkills
+                    .map((skill) => `${skill.name}${skill.weight === 3 ? ' (kritike)' : ''}`)
+                    .join(', ')}
+                </p>
+              )}
+              {match.relatedSkills?.length > 0 && (
+                <div>
+                  <strong>Përputhje të pjesshme:</strong>
+                  <ul>
+                    {match.relatedSkills.map((item) => (
+                      <li key={item.requiredSkill}>
+                        {item.studentSkill} → {item.requiredSkill}:{' '}
+                        {Math.round(item.similarityWeight * 100)}% e pikëve të kësaj aftësie
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </details>
+            {match.reasons && (
+              <details className="skill-match-breakdown">
+                <summary>Pse ky rekomandim?</summary>
+                <ul>
+                  {match.reasons.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+                <p>Përputhja e aftësive me peshë: {match.skillScore}%.</p>
+              </details>
+            )}
           </>
         )}
       </div>
